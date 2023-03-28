@@ -27,7 +27,28 @@
 	redis - Контейнер с Redis, брокер для Celery
     nginx - Контейнер с nginx
 
+
 После развёртывания, сервис будет доступен по адресу http://127.0.0.1
+
+Для развёртывания необходимо создать файл с переменными окружения .env
+в корне docker-compose.yaml
+
+```
+DEBUG=False
+DIARY_DAYS_EXPIRATION = 3
+SECRET_KEY=django-insecure-r_l3jes+h$6iszx6py7ypul85cv=hl2c#4$x@)=!rhntk9r*25
+
+POSTGRES_DB=api_diary
+POSTGRES_USER=user
+POSTGRES_PASSWORD=112233
+POSTGRES_PORT=5432
+POSTGRES_HOST=db
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=112233
+```
+
 
 ### Описание Урлов и Методов для взаимодействия с API
 
