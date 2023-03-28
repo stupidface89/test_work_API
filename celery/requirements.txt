@@ -1,0 +1,2 @@
+django-celery-beat==2.5.0
+celery==5.2.7
