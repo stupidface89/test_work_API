@@ -21,55 +21,64 @@ class TestModels(APITestCase):
         self.user = User.objects.create_user(**self.user_data)
 
         response = self.authorized_user.post(reverse('token_obtain_pair'),
-                                               self.user_data, format='json')
+                                             self.user_data, format='json')
         token = response.data['access']
         self.authorized_user.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
     def tearDown(self) -> None:
         pass
 
+    @staticmethod
+    def get_diaries_count(user_id) -> int:
+        """
+        Возвращает количество дневников пользователя
+        """
+        return Diary.objects.filter(owner_id=user_id).count()
+
     def test_set_expiration_only_private(self):
         """
         Аттрибут expiration можно изменить только у приватных дневников
         """
         url = reverse('diaries_list_create')
-        three_days_in_future = datetime.datetime.strftime(
-                                 datetime.datetime.now() + datetime.timedelta(days=3),
-                                 "%d.%m.%Y %H:%M:%S"
-        )
+        four_days_in_future = datetime.datetime.strftime(
+                                 datetime.datetime.now() + datetime.timedelta(days=4),
+                                 "%d.%m.%Y %H:%M:%S")
+
+        two_days_in_future = datetime.datetime.strftime(
+                                 datetime.datetime.now() + datetime.timedelta(days=2),
+                                 "%d.%m.%Y %H:%M:%S")
 
         few_days_before = datetime.datetime.strftime(
-                                 datetime.datetime.now() - datetime.timedelta(days=3),
-                                 "%d.%m.%Y %H:%M:%S"
-        )
+                                 datetime.datetime.now() - datetime.timedelta(days=2),
+                                 "%d.%m.%Y %H:%M:%S")
 
         public_diary_data = {'title': 'New public Diary',
                              'kind': 'public',
-                             'expiration': three_days_in_future}
+                             'expiration': four_days_in_future}
 
         private_diary_data = {'title': 'New private Diary',
                               'kind': 'private',
-                              'expiration': three_days_in_future}
+                              'expiration': four_days_in_future}
 
         # Создаем публичный дневник с указанием expiration
-        count_diaries_before = Diary.objects.filter(owner_id=self.user.id).count()
+        count_diaries_before = self.get_diaries_count(self.user.id)
 
         self.authorized_user.post(url,
                                   data=json.dumps(public_diary_data),
                                   content_type='application/json')
 
-        count_diaries_after = Diary.objects.filter(owner_id=self.user.id).count()
+        count_diaries_after = self.get_diaries_count(self.user.id)
 
         self.assertEqual(count_diaries_before, count_diaries_after)
 
         # Создаем приватный дневник с указанием expiration
-        count_diaries_before = Diary.objects.filter(owner_id=self.user.id).count()
+        count_diaries_before = self.get_diaries_count(self.user.id)
 
         self.authorized_user.post(url,
                                   data=json.dumps(private_diary_data),
                                   content_type='application/json')
 
-        count_diaries_after = Diary.objects.filter(owner_id=self.user.id).count()
+        count_diaries_after = self.get_diaries_count(self.user.id)
 
         self.assertNotEqual(count_diaries_before, count_diaries_after)
 
@@ -78,13 +87,27 @@ class TestModels(APITestCase):
                               'kind': 'private',
                               'expiration': few_days_before}
 
-        count_diaries_before = Diary.objects.filter(owner_id=self.user.id).count()
+        count_diaries_before = self.get_diaries_count(self.user.id)
 
         self.authorized_user.post(url,
                                   data=json.dumps(private_diary_data),
                                   content_type='application/json')
 
-        count_diaries_after = Diary.objects.filter(owner_id=self.user.id).count()
+        count_diaries_after = self.get_diaries_count(self.user.id)
 
         self.assertEqual(count_diaries_before, count_diaries_after)
 
+        # Создаем дневник со временем жизни меньше, чем в main_config.DIARY_MINIMUM_DAYS_EXPIRATION
+        private_diary_data = {'title': 'New private Diary 3',
+                              'kind': 'private',
+                              'expiration': two_days_in_future}
+
+        count_diaries_before = self.get_diaries_count(self.user.id)
+
+        self.authorized_user.post(url,
+                                  data=json.dumps(private_diary_data),
+                                  content_type='application/json')
+
+        count_diaries_after = self.get_diaries_count(self.user.id)
+
+        self.assertEqual(count_diaries_before, count_diaries_after)

@@ -6,6 +6,7 @@ from rest_framework.validators import ValidationError
 from diary.models import Diary, Note
 from todo.settings_components.main_config import main_config
 
+
 class DiaryListCreateSerializer(serializers.ModelSerializer):
     owner = serializers.StringRelatedField()
 
@@ -19,6 +20,11 @@ class DiaryListCreateSerializer(serializers.ModelSerializer):
         return Diary.objects.create(**data)
 
     def validate(self, data):
+        # При создании дневника не может быть указана дата раньше той, что объявлена в main_config
+        not_earlier_date = datetime.now() + timedelta(
+            days=main_config.DIARY_MINIMUM_DAYS_EXPIRATION
+        )
+
         request = self.context.get('request')
         if data.get('kind') is None:
             raise ValidationError({'kind': 'Укажите уровень приватности,'
@@ -28,11 +34,13 @@ class DiaryListCreateSerializer(serializers.ModelSerializer):
             raise ValidationError({'expiration': 'Может быть указано только у '
                                    'private дневников'})
 
-        elif data.get('expiration') and data.get('expiration') <= datetime.now():
-            main_config
-            not_earlier_date = datetime.now().date() + timedelta(days=1)
+        elif data.get('expiration') and (
+                data.get('expiration') <= datetime.now() or
+                data.get('expiration') <= not_earlier_date
+        ):
+
             raise ValidationError({'title': 'Не может быть указана прошедшая '
-                                            'или текущая дата. Необходимо '
+                                            'или текущая дата. А Необходимо '
                                             'указать дату не раньше чем '
                                             f'{not_earlier_date.strftime("%d.%m.%Y")}.'})
 

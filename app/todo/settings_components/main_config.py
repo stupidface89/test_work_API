@@ -22,7 +22,7 @@ class Config(BaseSettings):
     DIARY_MINIMUM_DAYS_EXPIRATION: int = Field(env='DIARY_MINIMUM_DAYS_EXPIRATION', default=3)
 
     class Config:
-        env_file = '../.env'
+        env_file = '../.dev.env'
         env_file_encoding = 'utf-8'
 
 
