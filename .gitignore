@@ -3,3 +3,4 @@
 *.env
 pg_data
 docker-compose-dev.yaml
+__pycache__
