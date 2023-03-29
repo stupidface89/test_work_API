@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
 from diary.models import Diary, Note
-
+from todo.settings_components.main_config import main_config
 
 class DiaryListCreateSerializer(serializers.ModelSerializer):
     owner = serializers.StringRelatedField()
@@ -24,12 +24,12 @@ class DiaryListCreateSerializer(serializers.ModelSerializer):
             raise ValidationError({'kind': 'Укажите уровень приватности,'
                                            ' public или private'})
 
-        elif (data.get('expiration') is not None and
-              data.get('kind') == 'public'):
+        elif data.get('expiration') and data.get('kind') == 'public':
             raise ValidationError({'expiration': 'Может быть указано только у '
                                    'private дневников'})
 
         elif data.get('expiration') and data.get('expiration') <= datetime.now():
+            main_config
             not_earlier_date = datetime.now().date() + timedelta(days=1)
             raise ValidationError({'title': 'Не может быть указана прошедшая '
                                             'или текущая дата. Необходимо '

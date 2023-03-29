@@ -15,10 +15,14 @@ class Config(BaseSettings):
     POSTGRES_HOST: str = Field(env='POSTGRES_HOST')
     POSTGRES_PORT: str = Field(env='POSTGRES_PORT')
 
+    # Сколько дней будут "жить" новые дневники, без явного указания expiration
     DIARY_DAYS_EXPIRATION: int = Field(env='DIARY_DAYS_EXPIRATION', default=3)
 
+    # Минимальное количество дней "жизни", которое стоит указывать при создании дневника
+    DIARY_MINIMUM_DAYS_EXPIRATION: int = Field(env='DIARY_MINIMUM_DAYS_EXPIRATION', default=3)
+
     class Config:
-        env_file = '../.dev.env'
+        env_file = '../.env'
         env_file_encoding = 'utf-8'
 
 
